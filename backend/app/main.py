@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from app.db.database import engine
 from app.models import Base
-from app.routes import users, favorites, recipes, comments
+from app.routes import users, favorites, recipes, comments, ai
 from contextlib import asynccontextmanager
 from fastapi.openapi.utils import get_openapi  # ✅ חדש
 
@@ -28,6 +28,7 @@ app.include_router(users.router)
 app.include_router(recipes.router)
 app.include_router(favorites.router) 
 app.include_router(comments.router)
+app.include_router(ai.router)
 
 @app.get("/")
 def root():

@@ -5,9 +5,11 @@ from app.config import OPENAI_API_KEY
 
 
 
+
 KNOWN_INGREDIENTS_HE = {
     "אבטיח", "אבקת אפייה", "אבקת סודה", "אבקת סוכר", "אגוז מוסקט", "אגס", "אורגנו", "אורז", "אזוב", "אטריות",
-    "אמנון", "אננס", "אפונה", "אפונה יבשה", "אפרסק", "ארטישוק", "אשכולית", "בהרט", "בורגול", "בזיליקום",
+    "אמנון", "אננס", "אפונה", "אפונה יבשה", "אפרסק", "ארטישוק", "אשכולית", "בהרט", "בורגול", "בזיליקום","חזה עוף","חזה הודו",
+    "בצל סגול", "בצל יבש", "בצל ירוק", "בצל מטוגן", "בצלצלים", "בצק עלים", "בצק פילו", "בצק פריך","חזה אווז"
     "ביצה", "ביצים קשות", "בצל", "בצל ירוק", "בטטה", "במיה", "ברוקולי", "בשמל", "גבינה", "גבינה לבנה",
     "גבינה צהובה", "גבינת קוטג׳", "גבינת שמנת", "גבינת פטה", "גבינת גאודה", "גבינת צ'דר", "גזר", "גרגרי חרדל",
     "גרנולה", "דג", "דג מרלוזה", "דבש", "דובדבנים", "דניס", "הודו", "וניל", "חזה הודו", "חזה עוף",
@@ -32,29 +34,76 @@ KNOWN_INGREDIENTS_HE = {
     "תבלין פיצה", "תבלין קארי", "תערובת תיבול", "תפוח", "תפוח אדמה", "תמרים", "תרד"
 }
 
+HEBREW_INGREDIENT_ALIASES = {
+    "עגבניות": "עגבנייה", "ביצים": "ביצה", "מלפפונים": "מלפפון", "בצלים": "בצל", "חסות": "חסה",
+    "פטריות": "פטרייה", "קציצות": "קציצה", "רוטבים": "רוטב", "שומים": "שום", "תפוחים": "תפוח",
+    "מרגרינות": "מרגרינה", "טימינים": "טימין", "קמחים": "קמח", "עוגיות": "עוגיה", "פסטרמות": "פסטרמה",
+    "פיתות": "פיתה", "פרפות": "פרפה", "סלטים": "סלט", "יוגורטים": "יוגורט", "פרמזנים": "פרמזן",
+    "ריקוטות": "ריקוטה", "לחמניות": "לחמנייה", "פסטות": "פסטה", "עוגות": "עוגה", "ריבתים": "ריבה",
+    "גזרים": "גזר", "חצילים": "חציל", "במיות": "במיה", "פולים": "פול", "כרובים": "כרוב"
+}
+
 STOPWORDS_HE = {"עם", "וגם", "קצת", "של", "מעט", "ו", "ו-", "ו."}
+
 
 client = OpenAI(api_key=OPENAI_API_KEY)
 
-def extract_hebrew_ingredients(text: str):
+def normalize_ingredient(word: str) -> str:
+    word = word.strip().lower()
+
+    # טיפול ב-ו' חיבור
+    if word.startswith("ו") and len(word) > 2:
+        word = word[1:]
+
+    # אם המילה/צירוף נמצא במילון הנרדפות – החזר את התקני
+    if word in HEBREW_INGREDIENT_ALIASES:
+        return HEBREW_INGREDIENT_ALIASES[word]
+
+    # אם מדובר בצירוף של 2 מילים – נרמל כל אחת מהן בנפרד
+    if " " in word:
+        parts = word.split()
+        normalized_parts = [HEBREW_INGREDIENT_ALIASES.get(p, p) for p in parts]
+        return " ".join(normalized_parts)
+
+    return word
+
+
+
+def extract_hebrew_ingredients(text: str) -> list[str]:
     text = text.lower()
     text = re.sub(r"[^\w\sא-ת]", "", text)
     words = text.split()
-    words = [w.lstrip("ו") for w in words if w not in STOPWORDS_HE]
 
-    final = []
+    ingredients = []
     i = 0
     while i < len(words):
+        # נסה קודם 3 מילים (נדיר אבל עדיף להקדים)
+        if i + 2 < len(words):
+            three_words = f"{words[i]} {words[i+1]} {words[i+2]}"
+            normalized = normalize_ingredient(three_words)
+            if normalized in KNOWN_INGREDIENTS_HE:
+                ingredients.append(normalized)
+                i += 3
+                continue
+
+        # נסה 2 מילים
         if i + 1 < len(words):
-            two = f"{words[i]} {words[i+1]}"
-            if two in KNOWN_INGREDIENTS_HE:
-                final.append(two)
+            two_words = f"{words[i]} {words[i+1]}"
+            normalized = normalize_ingredient(two_words)
+            if normalized in KNOWN_INGREDIENTS_HE:
+                ingredients.append(normalized)
                 i += 2
                 continue
-        if words[i] in KNOWN_INGREDIENTS_HE:
-            final.append(words[i])
+
+        # נסה מילה אחת
+        word = normalize_ingredient(words[i])
+        if word in KNOWN_INGREDIENTS_HE:
+            ingredients.append(word)
         i += 1
-    return final
+
+    return ingredients
+
+
 
 def generate_recipe_with_openai(ingredients: list[str]) -> dict:
     prompt = (
@@ -65,7 +114,6 @@ def generate_recipe_with_openai(ingredients: list[str]) -> dict:
         "- הוראות הכנה פשוטות וברורות"
     )
 
-    openai.api_key = OPENAI_API_KEY
     response = client.chat.completions.create(
         model="gpt-3.5-turbo",
         messages=[
@@ -77,14 +125,14 @@ def generate_recipe_with_openai(ingredients: list[str]) -> dict:
     )
 
     content = response.choices[0].message.content.strip()
-
-    # פיצול המצורף למרכיבים והוראות הכנה
     parts = content.split("הוראות הכנה:")
     ingredients_text = parts[0].replace("מצרכים:", "").strip() if len(parts) > 1 else ""
     instructions = parts[1].strip() if len(parts) > 1 else content
 
+    title = f"מנה עם {', '.join(ingredients[:-1])} ו{ingredients[-1]}" if len(ingredients) > 1 else f"מנה עם {ingredients[0]}"
+
     return {
-        "title": f"מנה עם {' ו'.join(ingredients)}",
+        "title": title,
         "ingredients": ingredients,
         "ingredients_text": ingredients_text,
         "instructions": instructions

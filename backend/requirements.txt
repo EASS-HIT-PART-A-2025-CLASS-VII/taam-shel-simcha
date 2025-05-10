@@ -10,5 +10,7 @@ bcrypt
 python-jose[cryptography]
 cloudinary
 python-multipart
+httpx
+
 
 
