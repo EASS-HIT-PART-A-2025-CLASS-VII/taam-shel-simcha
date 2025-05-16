@@ -11,7 +11,7 @@ from app.services.cloudinary_service import upload_image_to_cloudinary
 from datetime import datetime
 from typing import Optional
 from uuid import uuid4
-from app.services.email import send_recipe_email_with_pdf
+from app.services.email import send_recipe_email_with_pdf, send_rating_notification_email
 
 router = APIRouter(prefix="/recipes", tags=["recipes"])
 
@@ -282,6 +282,14 @@ def rate_recipe(
             rating=rating_data.rating
         )
         db.add(new_rating)
+
+        # ✅ שליחת מייל לבעל המתכון רק בדירוג חדש
+        if recipe.creator and recipe.creator.email:
+            send_rating_notification_email(
+                to_email=recipe.creator.email,
+                recipe_title=recipe.title,
+                rating=rating_data.rating
+            )
 
     db.commit()
     return {"message": "Rating submitted successfully"}

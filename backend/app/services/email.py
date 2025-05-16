@@ -122,3 +122,29 @@ def send_recipe_email_with_pdf(to_email: str, recipe: dict):
             print("✅ PDF נשלח במייל בהצלחה!")
     except Exception as e:
         print("❌ שגיאה בשליחת מתכון במייל:", e)
+
+
+def send_rating_notification_email(to_email: str, recipe_title: str, rating: int):
+    msg = EmailMessage()
+    msg['Subject'] = f"⭐ דירוג חדש למתכון שלך - {recipe_title}"
+    msg['From'] = f"טעם של שמחה <{EMAIL_ADDRESS}>"
+    msg['To'] = to_email
+
+    msg.set_content(f"""
+שלום 👋
+
+המתכון שלך "{recipe_title}" קיבל דירוג חדש של {rating} כוכבים!
+
+שמור/י על הקצב ושתף/י מתכונים נוספים 💛
+
+צוות טעם של שמחה
+""")
+
+    try:
+        with smtplib.SMTP(EMAIL_HOST, EMAIL_PORT) as smtp:
+            smtp.starttls()
+            smtp.login(EMAIL_ADDRESS, EMAIL_PASSWORD)
+            smtp.send_message(msg)
+            print("📬 נשלח מייל לבעל המתכון על דירוג חדש!")
+    except Exception as e:
+        print("❌ שגיאה בשליחת מייל התראה על דירוג:", e)
