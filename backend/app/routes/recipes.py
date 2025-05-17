@@ -12,6 +12,9 @@ from datetime import datetime
 from typing import Optional
 from uuid import uuid4
 from app.services.email import send_recipe_email_with_pdf, send_rating_notification_email
+from app.services import recipe_services
+
+PAGE_SIZE = 8
 
 router = APIRouter(prefix="/recipes", tags=["recipes"])
 
@@ -427,3 +430,38 @@ def send_recipe_via_email(
     return {"message": "Email is being sent"}
 
 
+
+@router.get("/recipes/sorted/top-rated")
+def get_top_rated_recipes(page: int = 1, db: Session = Depends(get_db)):
+    recipes = recipe_services.get_top_rated_recipes(db)
+    total = len(recipes)
+    paginated = recipes[(page - 1) * PAGE_SIZE : page * PAGE_SIZE]
+    total_pages = (total + PAGE_SIZE - 1) // PAGE_SIZE
+    return {"recipes": paginated, "total_pages": total_pages, "current_page": page}
+
+
+@router.get("/recipes/sorted/random")
+def get_random_recipes(page: int = 1, db: Session = Depends(get_db)):
+    recipes = recipe_services.get_random_recipes(db)
+    total = len(recipes)
+    paginated = recipes[(page - 1) * PAGE_SIZE : page * PAGE_SIZE]
+    total_pages = (total + PAGE_SIZE - 1) // PAGE_SIZE
+    return {"recipes": paginated, "total_pages": total_pages, "current_page": page}
+
+
+@router.get("/recipes/sorted/recent")
+def get_recent_recipes(page: int = 1, db: Session = Depends(get_db)):
+    recipes = recipe_services.get_most_recent_recipes(db)
+    total = len(recipes)
+    paginated = recipes[(page - 1) * PAGE_SIZE : page * PAGE_SIZE]
+    total_pages = (total + PAGE_SIZE - 1) // PAGE_SIZE
+    return {"recipes": paginated, "total_pages": total_pages, "current_page": page}
+
+
+@router.get("/recipes/sorted/favorited")
+def get_most_favorited_recipes(page: int = 1, db: Session = Depends(get_db)):
+    recipes = recipe_services.get_most_favorited_recipes(db)
+    total = len(recipes)
+    paginated = recipes[(page - 1) * PAGE_SIZE : page * PAGE_SIZE]
+    total_pages = (total + PAGE_SIZE - 1) // PAGE_SIZE
+    return {"recipes": paginated, "total_pages": total_pages, "current_page": page}
