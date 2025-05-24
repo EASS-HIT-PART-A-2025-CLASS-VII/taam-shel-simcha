@@ -31,3 +31,14 @@
 .navbar-links a:hover {
   color: #007bff;
 }
+
+
+.nav-icon-img {
+  font-size: 1.4rem;
+  color: #4a3f35;
+  border: none;
+  background: none;
+  outline: none;
+  box-shadow: none;
+}
+

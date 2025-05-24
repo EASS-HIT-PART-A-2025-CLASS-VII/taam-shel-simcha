@@ -1,3 +1,4 @@
+// src/App.js
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import GuestLayout from "./layouts/GuestLayout";
 import MainLayout from "./layouts/MainLayout";
@@ -7,56 +8,78 @@ import AllRecipesPage from "./pages/AllRecipesPage";
 import ProfilePage from "./pages/ProfilePage";
 import PublicRecipesPage from "./pages/PublicRecipesPage";
 import AiRecipePage from "./pages/AiRecipePage";
+import { AuthProvider } from "./context/AuthContext";
+import ProtectedRoute from "./components/ProtectedRoute";
 
 import "./css/App.css";
-import './index.css'; // ← חשוב שזה ייובא
-
+import "./index.css";
 
 function App() {
   return (
-    <Router>
-      {/* לוגו קבוע */}
-      <div
-        style={{
-          position: "fixed",
-          top: "1rem",
-          left: "1rem",
-          zIndex: 9999,
-        }}
-      >
-        <img
-          src="/savta_icon.png"
-          alt="לוגו סבתא"
+    <AuthProvider>
+      <Router>
+        {/* לוגו קבוע */}
+        <div
           style={{
-            width: "110px",
-            borderRadius: "50%",
-            transition: "transform 0.2s ease-in-out",
+            position: "fixed",
+            top: "1rem",
+            left: "1rem",
+            zIndex: 9999,
           }}
-          onMouseOver={(e) => (e.currentTarget.style.transform = "scale(1.05)")}
-          onMouseOut={(e) => (e.currentTarget.style.transform = "scale(1)")}
-          title="טעם של שמחה"
-        />
-      </div>
+        >
+          <img
+            src="/savta_icon.png"
+            alt="לוגו סבתא"
+            style={{
+              width: "110px",
+              borderRadius: "50%",
+              transition: "transform 0.2s ease-in-out",
+            }}
+            onMouseOver={(e) =>
+              (e.currentTarget.style.transform = "scale(1.05)")
+            }
+            onMouseOut={(e) =>
+              (e.currentTarget.style.transform = "scale(1)")
+            }
+            title="טעם של שמחה"
+          />
+        </div>
 
-      {/* 👇 עטיפה שמחברת לעיצוב ב־App.css */}
-      <div className="App">
-        <Routes>
-          <Route element={<GuestLayout />}>
-            <Route path="/" element={<LoginPage />} />
-            <Route path="/register" element={<RegisterPage />} />
-            <Route path="/public-recipes" element={<PublicRecipesPage />} />
+        <div className="App">
+          <Routes>
+            {/* אורחים */}
+            <Route element={<GuestLayout />}>
+              <Route path="/" element={<LoginPage />} />
+              <Route path="/register" element={<RegisterPage />} />
+              <Route path="/public-recipes" element={<PublicRecipesPage />} />
+            </Route>
+
+            {/* משתמשים מחוברים בלבד */}
+            <Route element={<MainLayout />}>
+              <Route
+                path="/recipes"
+                element={
+                  <ProtectedRoute>
+                    <AllRecipesPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/profile"
+                element={
+                  <ProtectedRoute>
+                    <ProfilePage />
+                  </ProtectedRoute>
+                }
+              />
+            </Route>
+
+            {/* זמין לכולם – כולל GUEST */}
             <Route path="/ai-recipe" element={<AiRecipePage />} />
-            {/* הוספתי את ה־path הזה כדי שהכפתור יוביל לעמוד המתכונים */}
-
-          </Route>
-
-          <Route element={<MainLayout />}>
-            <Route path="/recipes" element={<AllRecipesPage />} />
-            <Route path="/profile" element={<ProfilePage />} />
-          </Route>
-        </Routes>
-      </div>
-    </Router>
+          </Routes>
+        </div>
+      </Router>
+    </AuthProvider>
   );
 }
 
