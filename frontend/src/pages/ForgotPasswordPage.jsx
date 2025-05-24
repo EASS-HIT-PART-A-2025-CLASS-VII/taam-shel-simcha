@@ -18,7 +18,7 @@ function ForgotPasswordPage() {
       setMessage("📨 קישור לאיפוס סיסמה נשלח למייל שלך!");
     } catch (err) {
       console.error("שגיאה בשליחת מייל:", err);
-      setError("⚠️ שגיאה בשליחת מייל. ודא שהמייל נכון.");
+      setError("⚠️ מייל לא קיים במערכת.");
     }
   };
 

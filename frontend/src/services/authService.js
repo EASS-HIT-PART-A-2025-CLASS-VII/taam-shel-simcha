@@ -36,3 +36,13 @@ export async function requestPasswordReset(email) {
   const res = await axios.post(`${API_URL}/auth/forgot-password`, { email });
   return res.data;
 }
+
+
+export async function resetPassword(token, newPassword, confirmPassword) {
+  const res = await axios.post(`${API_URL}/auth/reset-password`, {
+    token,
+    new_password: newPassword,
+    confirm_password: confirmPassword,
+  });
+  return res.data;
+}
