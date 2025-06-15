@@ -7,7 +7,11 @@ from app.services.users import hash_password, verify_password, create_access_tok
 from app.models import User
 from jose import JWTError, jwt
 from app.services.email import send_reset_email
+import os
+from dotenv import load_dotenv
+load_dotenv()
 
+frontend_url = os.getenv("FRONTEND_URL")
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
@@ -80,7 +84,7 @@ def forgot_password(
 
     reset_token = create_reset_token(user.id)
 
-    reset_link = f"http://localhost:3000/reset-password?token={reset_token}"
+    reset_link = f"http://localhost:5173/reset-password?token={reset_token}"
     send_reset_email(user.email, reset_link)
 
     return {"message": "If this email exists, a reset link was sent"}
