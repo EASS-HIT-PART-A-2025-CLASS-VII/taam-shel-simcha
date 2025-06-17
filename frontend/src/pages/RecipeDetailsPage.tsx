@@ -19,28 +19,33 @@ export default function RecipeDetailsPage() {
   const [currentUser, setCurrentUser] = useState<null | { id: number; is_admin?: boolean }>(null);
 
   useEffect(() => {
-    async function fetchUser() {
-      try {
-        const res = await api.get("/auth/me");
-        setCurrentUser(res.data);
-      } catch {
-        setCurrentUser(null);
-      }
-    }
-    fetchUser();
-  }, []);
-
-  useEffect(() => {
     async function fetchRecipe() {
       try {
-        const res = await api.get(`/recipes/public/${id}`);
-        setRecipe(res.data);
+        const userRes = await api.get("/auth/me");
+        setCurrentUser(userRes.data);
+
+        try {
+          const privateRes = await api.get(`/recipes/${id}`);
+          setRecipe(privateRes.data);
+        } catch {
+          const publicRes = await api.get(`/recipes/public/${id}`);
+          setRecipe(publicRes.data);
+        }
+
       } catch {
-        alert("שגיאה בטעינת המתכון");
+        // אם המשתמש לא מחובר – ננסה רק כציבורי
+        try {
+          const publicRes = await api.get(`/recipes/public/${id}`);
+          setRecipe(publicRes.data);
+        } catch {
+          alert("שגיאה בטעינת המתכון");
+          navigate("/recipes");
+        }
       }
     }
+
     fetchRecipe();
-  }, [id]);
+  }, [id, navigate]);
 
   useEffect(() => {
     async function checkFavorite() {

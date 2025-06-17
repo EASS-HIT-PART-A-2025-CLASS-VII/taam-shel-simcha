@@ -222,8 +222,7 @@ def get_recipe_by_id(
     if not recipe:
         raise HTTPException(status_code=404, detail="Recipe not found")
 
-    # רק הבעלים או אדמין יכולים לראות
-    if recipe.user_id != current_user.id and not current_user.is_admin:
+    if not recipe.is_public and recipe.user_id != current_user.id and not current_user.is_admin:
         raise HTTPException(status_code=403, detail="You are not authorized to view this recipe")
 
     avg_rating = db.query(func.avg(Rating.rating)).filter(Rating.recipe_id == recipe_id).scalar()
@@ -243,6 +242,7 @@ def get_recipe_by_id(
         average_rating=round(avg_rating, 2) if avg_rating else None,
         user_id=recipe.user_id
     )
+
 
 
 
