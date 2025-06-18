@@ -248,6 +248,48 @@ def update_recipe(
     return {"message": "Recipe updated successfully"}
 
 
+
+@router.get("/search", response_model=list[RecipeResponse])
+def search_recipes(
+    title: Optional[str] = Query(default=None),
+    ingredient: Optional[str] = Query(default=None),
+    creator_name: Optional[str] = Query(default=None),
+    db: Session = Depends(get_db)
+):
+    query = db.query(models.Recipe).filter(models.Recipe.is_public == True)
+
+    if title and title.strip():
+        query = query.filter(models.Recipe.title.ilike(f"%{title.strip()}%"))
+    
+    if ingredient and ingredient.strip():
+        query = query.filter(models.Recipe.ingredients.ilike(f"%{ingredient.strip()}%"))
+    
+    if creator_name and creator_name.strip():
+        query = query.join(models.User).filter(models.User.username.ilike(f"%{creator_name.strip()}%"))
+
+    recipes = query.all()
+
+    result = []
+    for recipe in recipes:
+        creator = recipe.creator.username if recipe.creator else "Unknown"
+        result.append(RecipeResponse(
+            id=recipe.id,
+            title=recipe.title,
+            description=recipe.description,
+            ingredients=recipe.ingredients,
+            instructions=recipe.instructions,
+            image_url=recipe.image_url,
+            video_url=recipe.video_url,
+            share_token=recipe.share_token,
+            is_public=recipe.is_public,
+            created_at=recipe.created_at.isoformat() if recipe.created_at else None,
+            creator_name=creator,
+            user_id=recipe.user_id
+        ))
+
+    return result
+
+
 @router.get("/{recipe_id}", response_model=RecipeResponse)
 def get_recipe_by_id(
     recipe_id: int,
@@ -401,46 +443,6 @@ def get_average_rating(recipe_id = int, db: Session = Depends(get_db)):
     }
 
 
-
-@router.get("/search", response_model=list[RecipeResponse])
-def search_recipes(
-    title: str = Query(None),
-    ingredient: str = Query(None),
-    creator_name: str = Query(None),
-    db: Session = Depends(get_db)
-):
-    query = db.query(models.Recipe).filter(models.Recipe.is_public == True)
-
-    if title:
-        query = query.filter(models.Recipe.title.ilike(f"%{title}%"))
-    
-    if ingredient:
-        query = query.filter(models.Recipe.ingredients.ilike(f"%{ingredient}%"))
-    
-    if creator_name:
-        query = query.join(models.User).filter(models.User.username.ilike(f"%{creator_name}%"))
-
-    recipes = query.all()
-
-    result = []
-    for recipe in recipes:
-        creator = recipe.creator.username if recipe.creator else "Unknown"
-        result.append(RecipeResponse(
-            id=recipe.id,
-            title=recipe.title,
-            description=recipe.description,
-            ingredients=recipe.ingredients,
-            instructions=recipe.instructions,
-            image_url=recipe.image_url,
-            video_url=recipe.video_url,
-            share_token=recipe.share_token,
-            is_public=recipe.is_public,
-            created_at=recipe.created_at.isoformat() if recipe.created_at else None,
-            creator_name=creator,
-            user_id=recipe.user_id
-        ))
-
-    return result
 
 
 @router.get("/top-rated", response_model=list[RecipeResponse])

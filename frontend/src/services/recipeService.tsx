@@ -128,3 +128,16 @@ export async function getMyRecipes(): Promise<Recipe[]> {
   });
   return response.data;
 }
+
+
+export async function searchRecipes(params: { title?: string; ingredient?: string; creator_name?: string }) {
+  // נבנה אובייקט חדש רק עם שדות שיש להם ערך לא ריק
+  const cleanParams: any = {};
+  if (params.title?.trim()) cleanParams.title = params.title.trim();
+  if (params.ingredient?.trim()) cleanParams.ingredient = params.ingredient.trim();
+  if (params.creator_name?.trim()) cleanParams.creator_name = params.creator_name.trim();
+
+  const response = await api.get("/recipes/search", { params: cleanParams });
+  return response.data;
+}
+
