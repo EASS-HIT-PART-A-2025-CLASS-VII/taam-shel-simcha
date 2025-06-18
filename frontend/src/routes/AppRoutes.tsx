@@ -16,6 +16,7 @@ import CreateRecipePage from "../pages/CreateRecipePage";
 import EditProfilePage from "../pages/EditProfilePage";
 import MyRecipesPage from "../pages/MyRecipesPage";
 import MyFavoritesPage from "../pages/MyFavoritesPage";
+import AdminDashboard from "../pages/AdminDashboard";
 
 export default function AppRoutes() {
   return (
@@ -47,6 +48,7 @@ export default function AppRoutes() {
         <Route path="/profile" element={<EditProfilePage/>} />
         <Route path="/recipes/mine" element={<MyRecipesPage />} />
         <Route path="/favorites" element={<MyFavoritesPage />} />
+        <Route path="/admin" element={<AdminDashboard />} />
       </Route>
     </Routes>
   );

@@ -95,6 +95,7 @@ def read_current_user(current_user: User = Depends(get_current_user)):
         "created_at": current_user.created_at,
         "wants_emails": current_user.wants_emails,
         "profile_image_url": current_user.profile_image_url,
+        "is_admin": current_user.is_admin
     }
 
 

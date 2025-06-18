@@ -46,6 +46,7 @@ class UserResponse(BaseModel):
     created_at: datetime
     wants_emails: bool
     profile_image_url: Optional[str] = None  # ✅ הוספת שדה חסר
+    is_admin: bool   # ✅ הוספת שדה חסר
 
     class Config:
         from_attributes = True  # ✅ חובה!
