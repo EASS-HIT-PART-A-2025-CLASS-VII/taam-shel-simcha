@@ -1,4 +1,5 @@
 import { Routes, Route, Navigate } from "react-router-dom";
+import LandingPage from "../pages/LandingPage";
 import LoginPage from "../pages/LoginPage";
 import RegisterPage from "../pages/RegisterPage";
 import ForgotPasswordPage from "../pages/ForgotPasswordPage";
@@ -19,12 +20,14 @@ import AdminDashboard from "../pages/AdminDashboard";
 import ProfilePage from "../pages/ProfilePage";
 import GuestRecipePage from "../pages/GuestRecipePage";
 
+
+
 export default function AppRoutes() {
   return (
     <Routes>
       {/* Guest routes */}
       <Route element={<GuestLayout />}>
-        <Route path="/" element={<Navigate to="/public" />} />
+        <Route path="/" element={<LandingPage />} />
         <Route path="/public" element={<PublicRecipesPage />} />
         <Route path="/ai-recipe" element={<AiRecipePage />} />
         <Route path="/login" element={<LoginPage />} />
@@ -32,8 +35,6 @@ export default function AppRoutes() {
         <Route path="/forgot-password" element={<ForgotPasswordPage />} />
         <Route path="/reset-password" element={<ResetPasswordPage />} />
         <Route path="/guest-view/:id" element={<GuestRecipePage />} />
-
-
       </Route>
 
       {/* Protected user routes */}
