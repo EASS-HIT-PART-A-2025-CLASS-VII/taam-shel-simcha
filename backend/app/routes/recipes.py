@@ -654,3 +654,44 @@ def get_most_favorited_recipes(page: int = 1, db: Session = Depends(get_db)):
 
     return {"recipes": results, "total_pages": total_pages, "current_page": page}
 
+
+@router.get("/admin/stats")
+def get_admin_stats(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(admin_required)
+):
+    from app.models import User, Recipe, Rating, Favorite
+
+    # מספר משתמשים
+    user_count = db.query(User).count()
+
+    # מספר מתכונים
+    recipe_count = db.query(Recipe).count()
+
+    # מתכון עם דירוג ממוצע הכי גבוה
+    top_rated = (
+        db.query(Recipe.title, func.avg(Rating.rating).label("avg_rating"))
+        .join(Rating, Rating.recipe_id == Recipe.id)
+        .group_by(Recipe.id)
+        .order_by(func.avg(Rating.rating).desc())
+        .first()
+    )
+    top_rated_title = top_rated.title if top_rated else "אין"
+
+    # מתכון עם הכי הרבה מועדפים
+    most_favorited = (
+        db.query(Recipe.title, func.count(Favorite.user_id).label("fav_count"))
+        .join(Favorite, Favorite.recipe_id == Recipe.id)
+        .group_by(Recipe.id)
+        .order_by(func.count(Favorite.user_id).desc())
+        .first()
+    )
+    most_favorited_title = most_favorited.title if most_favorited else "אין"
+
+    return {
+        "user_count": user_count,
+        "recipe_count": recipe_count,
+        "top_rated_recipe": top_rated_title,
+        "most_favorited_recipe": most_favorited_title
+    }
+

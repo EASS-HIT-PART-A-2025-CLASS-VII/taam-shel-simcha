@@ -26,3 +26,14 @@ export const deleteRecipe = async (recipeId: number): Promise<{ message: string 
   const res = await api.delete(`/recipes/admin/${recipeId}`);
   return res.data;
 };
+
+
+export const getAdminStats = async (): Promise<{
+  user_count: number;
+  recipe_count: number;
+  top_rated_recipe: string;
+  most_favorited_recipe: string;
+}> => {
+  const res = await api.get("/recipes/admin/stats");
+  return res.data;
+};
