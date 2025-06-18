@@ -23,9 +23,10 @@ export const getAllRecipes = async (): Promise<Recipe[]> => {
 
 // מחיקת מתכון לפי ID
 export const deleteRecipe = async (recipeId: number): Promise<{ message: string }> => {
-  const res = await api.delete(`/recipes/admin/${recipeId}`);
+  const res = await api.delete(`/recipes/admin/recipes/${recipeId}`);
   return res.data;
 };
+
 
 
 export const getAdminStats = async (): Promise<{
