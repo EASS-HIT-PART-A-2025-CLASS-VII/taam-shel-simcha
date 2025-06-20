@@ -13,10 +13,12 @@ export async function getPublicRecipes() {
 }
 
 // שליפת כל המתכונים (ציבוריים ופרטיים – תלוי בהרשאות)
-export async function getAllPublicRecipes() {
-  const response = await axios.get(`${BASE_URL}/recipes`);
-  return response.data;
+export async function getAllPublicRecipes(page: number = 1) {
+  const response = await api.get(`/recipes?page=${page}`);
+  return response.data; // { recipes, total, page, page_size, total_pages }
 }
+
+
 
 // מיון מתכונים לפי קריטריון ודף (pagination)
 export async function getSortedRecipes(sort: string, page: number = 1) {

@@ -26,10 +26,24 @@ export default function GuestRecipePage() {
 
   const ingredients = recipe.ingredients?.split(/[\n,]+/).map(i => i.trim()).filter(Boolean);
   const instructions = recipe.instructions?.split("\n").filter(Boolean);
-  const formattedDate = new Date(recipe.created_at).toLocaleString("he-IL", {
-    dateStyle: "long",
-    timeStyle: "short",
-  });
+  const formattedDate = recipe.created_at
+    ? new Date(recipe.created_at).toLocaleString("he-IL", {
+        dateStyle: "long",
+        timeStyle: "short",
+      })
+    : "";
+
+  const difficultyColor = {
+    Easy: "bg-green-100 text-green-800",
+    Medium: "bg-yellow-100 text-yellow-800",
+    Hard: "bg-red-100 text-red-800",
+  }[recipe.difficulty || ""] || "bg-gray-100 text-gray-800";
+
+  const difficultyText = {
+    Easy: "קל",
+    Medium: "בינוני",
+    Hard: "קשה",
+  }[recipe.difficulty || ""] || recipe.difficulty;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#fdfcfb] via-[#f6f1ed] to-[#e8e4de] p-6 font-sans">
@@ -40,12 +54,24 @@ export default function GuestRecipePage() {
         </Link>
 
         <h1 className="text-4xl font-bold text-primary mb-2">{recipe.title}</h1>
-        <p className="text-sm text-gray-600 mb-2">👨‍🍳 {recipe.creator_name}</p>
 
-        <div className="inline-block bg-yellow-100 text-yellow-700 font-bold px-4 py-1 rounded-full text-sm mb-4">
-          ⭐ {recipe.average_rating != null ? recipe.average_rating.toFixed(1) : "אין דירוג"}
+        <div className="flex flex-wrap items-center gap-2 mb-4">
+          {recipe.difficulty && (
+            <div className={`font-semibold px-4 py-1 rounded-full text-sm ${difficultyColor}`}>
+              🎯 רמת קושי: {difficultyText}
+            </div>
+          )}
+          {recipe.prep_time && (
+            <div className="font-semibold px-4 py-1 rounded-full text-sm bg-purple-100 text-purple-800">
+              🕒 זמן הכנה: {recipe.prep_time}
+            </div>
+          )}
+          <div className="inline-block bg-yellow-100 text-yellow-700 font-bold px-4 py-1 rounded-full text-sm">
+            ⭐ {recipe.average_rating != null ? recipe.average_rating.toFixed(1) : "אין דירוג"}
+          </div>
         </div>
 
+        <p className="text-sm text-gray-600 mb-2">👨‍🍳 {recipe.creator_name}</p>
         <p className="text-sm text-gray-500 mb-6">📅 {formattedDate}</p>
 
         <div className="bg-orange-100 rounded-xl overflow-hidden flex justify-center items-center mb-8 w-full h-[500px]">

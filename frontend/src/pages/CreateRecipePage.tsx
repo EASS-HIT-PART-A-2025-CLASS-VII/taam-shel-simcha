@@ -12,6 +12,8 @@ export default function CreateRecipePage() {
     video_url: "",
     is_public: true,
   });
+  const [difficulty, setDifficulty] = useState("קל");
+  const [prepTime, setPrepTime] = useState("");
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -41,6 +43,8 @@ export default function CreateRecipePage() {
     Object.entries(formData).forEach(([key, value]) =>
       data.append(key, value.toString())
     );
+    data.append("difficulty", difficulty);
+    data.append("prep_time", prepTime);
     if (imageFile) {
       data.append("image", imageFile);
     }
@@ -110,7 +114,41 @@ export default function CreateRecipePage() {
           className="w-full p-3 border rounded-lg shadow-sm focus:outline-none focus:ring focus:border-primary"
         />
 
-        {/* שדה העלאת תמונה */}
+        {/* רמת קושי */}
+        <div>
+          <label htmlFor="difficulty" className="block mb-1 text-sm font-medium text-gray-700">
+            רמת קושי
+          </label>
+          <select
+            id="difficulty"
+            value={difficulty}
+            onChange={(e) => setDifficulty(e.target.value)}
+            className="w-full p-3 border rounded-lg shadow-sm bg-white"
+            required
+          >
+            <option value="קל">קל</option>
+            <option value="בינוני">בינוני</option>
+            <option value="קשה">קשה</option>
+          </select>
+        </div>
+
+        {/* זמן הכנה */}
+        <div>
+          <label htmlFor="prepTime" className="block mb-1 text-sm font-medium text-gray-700">
+            זמן הכנה (בדקות)
+          </label>
+          <input
+            type="text"
+            id="prepTime"
+            value={prepTime}
+            onChange={(e) => setPrepTime(e.target.value)}
+            required
+            placeholder="לדוגמה: 30"
+            className="w-full p-3 border rounded-lg shadow-sm bg-white"
+          />
+        </div>
+
+        {/* תמונה */}
         <div>
           <label className="block mb-1 text-sm font-medium text-gray-700">
             העלאת תמונה של המתכון (אופציונלי)
@@ -130,7 +168,7 @@ export default function CreateRecipePage() {
           )}
         </div>
 
-        {/* צ'קבוקס פומבי */}
+        {/* פומבי */}
         <div className="flex items-center justify-end flex-row-reverse gap-2 mt-2">
           <input
             type="checkbox"

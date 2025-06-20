@@ -1,3 +1,4 @@
+// pages/AllPublicRecipesPage.jsx
 import { useEffect, useState } from "react";
 import {
   getSortedRecipes,
@@ -8,7 +9,7 @@ import {
   searchRecipes,
 } from "../services/recipeService";
 import { Recipe } from "../types/Recipe";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import RecipeCard from "../components/RecipeCard";
 
 const SORT_OPTIONS = [
@@ -30,7 +31,8 @@ export default function AllPublicRecipesPage() {
   const [searchIngredient, setSearchIngredient] = useState("");
   const [searchCreator, setSearchCreator] = useState("");
 
-  const navigate = useNavigate();
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
 
   useEffect(() => {
     async function fetchFavorites() {
@@ -47,12 +49,13 @@ export default function AllPublicRecipesPage() {
 
   useEffect(() => {
     if (!isSearchMode) fetchRecipes();
-  }, [sort]);
+  }, [sort, page]);
 
   const fetchRecipes = async () => {
     try {
-      const data = await getSortedRecipes(sort);
+      const data = await getSortedRecipes(sort, page); // ✅ שימוש בפונקציה עם מיון
       setRecipes(data.recipes);
+      setTotalPages(data.total_pages);
     } catch (err) {
       console.error("שגיאה בטעינת מתכונים:", err);
     }
@@ -102,7 +105,6 @@ export default function AllPublicRecipesPage() {
 
   return (
     <div className="p-4 text-right" dir="rtl">
-      {/* 🔘 כפתור לפתיחת חיפוש מתקדם */}
       <div className="mb-4 flex flex-wrap gap-4">
         <button
           onClick={() => setShowAdvancedSearch(!showAdvancedSearch)}
@@ -155,7 +157,6 @@ export default function AllPublicRecipesPage() {
         </div>
       </div>
 
-      {/* 🔍 חיפוש מתקדם שמופיע רק אם showAdvancedSearch === true */}
       {showAdvancedSearch && (
         <div className="flex justify-center mb-6">
           <div className="bg-white border rounded-lg shadow p-4 w-full sm:w-[600px]">
@@ -202,29 +203,49 @@ export default function AllPublicRecipesPage() {
         </div>
       )}
 
-      {/* 🧾 כרטיסי מתכונים */}
       {recipes.length === 0 ? (
         <p className="text-center text-gray-500 mt-10">😕 לא נמצאו מתכונים מתאימים.</p>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-          {recipes.map((recipe) => (
-            <RecipeCard
-              key={recipe.id}
-              recipe={recipe}
-              isFavorited={favorites.includes(recipe.id)}
-              onToggleFavorite={toggleFavorite}
-              onRate={async (rating) => {
-                try {
-                  await rateRecipe(recipe.id, rating);
-                  alert("תודה על הדירוג!");
-                } catch {
-                  alert("שגיאה בשליחת הדירוג.");
-                }
-              }}
-              onClick={() => navigate(`/recipes/${recipe.id}`)} // ✅ ניווט מתוקן
-            />
-          ))}
-        </div>
+        <>
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+            {recipes.map((recipe) => (
+              <RecipeCard
+                key={recipe.id}
+                recipe={recipe}
+                isFavorited={favorites.includes(recipe.id)}
+                onToggleFavorite={toggleFavorite}
+                onRate={async (rating) => {
+                  try {
+                    await rateRecipe(recipe.id, rating);
+                    alert("תודה על הדירוג!");
+                  } catch {
+                    alert("שגיאה בשליחת הדירוג.");
+                  }
+                }}
+              />
+            ))}
+          </div>
+
+          <div className="flex justify-center mt-6 gap-4">
+            <button
+              onClick={() => setPage((prev) => (prev < totalPages ? prev + 1 : prev))}
+              disabled={page >= totalPages}
+              className="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400 disabled:opacity-50"
+            >
+              הבא ▶️
+            </button>
+            <span className="px-4 py-2 text-sm">
+              עמוד {page} מתוך {totalPages}
+            </span>
+            <button
+              onClick={() => setPage((prev) => Math.max(prev - 1, 1))}
+              disabled={page === 1}
+              className="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400 disabled:opacity-50"
+            >
+              ◀️ הקודם
+            </button>
+          </div>
+        </>
       )}
     </div>
   );

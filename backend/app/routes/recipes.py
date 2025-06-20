@@ -4,7 +4,7 @@ from app.db.database import get_db
 from app import models
 from app.models import User, Rating, Recipe
 from app.services.users import get_current_user, admin_required 
-from app.schemas.recipe_schema import RecipeAdminUpdate, ratingRequest, RecipeUpdate, RecipeResponse, ShareRequest
+from app.schemas.recipe_schema import RecipeAdminUpdate, ratingRequest, RecipeUpdate, RecipeResponse, ShareRequest, DifficultyLevel
 from sqlalchemy import func
 from fastapi import UploadFile, File
 from app.services.cloudinary_service import upload_image_to_cloudinary
@@ -21,35 +21,52 @@ router = APIRouter(prefix="/recipes", tags=["recipes"])
 
 
 
-@router.get("/", response_model=list[RecipeResponse])
-def get_all_recipes(db: Session = Depends(get_db)):
-    recipes = db.query(models.Recipe).filter(models.Recipe.is_public == True).all()
+@router.get("/", response_model=dict)
+def get_all_recipes(
+    db: Session = Depends(get_db),
+    page: int = Query(1, ge=1),
+    page_size: int = PAGE_SIZE
+):
+    query = db.query(models.Recipe).filter(models.Recipe.is_public == True)
+    total = query.count()
+
+    recipes = query.offset((page - 1) * page_size).limit(page_size).all()
 
     avg_ratings = dict(
         db.query(Rating.recipe_id, func.avg(Rating.rating))
         .group_by(Rating.recipe_id)
         .all()
     )
-    response = []
-    
-    for recipe in recipes:
-        response.append(RecipeResponse(
-            id=recipe.id,
-            title=recipe.title,
-            description=recipe.description,
-            ingredients=recipe.ingredients,
-            instructions=recipe.instructions,
-            image_url=recipe.image_url,
-            video_url=recipe.video_url,
-            user_id=recipe.user_id,
-            share_token = recipe.share_token,
-            is_public = recipe.is_public,
-            creator_name = recipe.creator.username if recipe.creator else "Unknown",
-            created_at=recipe.created_at.isoformat() if recipe.created_at else None,
-            average_rating=round(avg_ratings.get(recipe.id), 2) if avg_ratings.get(recipe.id) else None
-        ))
 
-    return response
+    response = [
+        RecipeResponse(
+            id=r.id,
+            title=r.title,
+            description=r.description,
+            ingredients=r.ingredients,
+            instructions=r.instructions,
+            image_url=r.image_url,
+            video_url=r.video_url,
+            user_id=r.user_id,
+            share_token=r.share_token,
+            is_public=r.is_public,
+            creator_name=r.creator.username if r.creator else "Unknown",
+            created_at=r.created_at.isoformat() if r.created_at else None,
+            average_rating=round(avg_ratings.get(r.id), 2) if avg_ratings.get(r.id) else None,
+            prep_time=r.prep_time,
+            difficulty=r.difficulty
+        )
+        for r in recipes
+    ]
+
+    return {
+        "recipes": response,
+        "total": total,
+        "page": page,
+        "page_size": page_size,
+        "total_pages": (total + page_size - 1) // page_size,
+    }
+
 
 
 @router.get("/public-random", response_model=list[RecipeResponse])
@@ -80,7 +97,9 @@ def get_random_public_recipes(db: Session = Depends(get_db)):
                 share_token=r.share_token,
                 is_public=r.is_public,
                 average_rating=round(avg_rating, 2) if avg_rating else None,  # ⬅️ זה השדה החדש
-                user_id=r.user_id
+                user_id=r.user_id,
+                difficulty=r.difficulty,
+                prep_time=r.prep_time  # ⬅️ זה השדה החדש
             )
         )
 
@@ -98,7 +117,9 @@ def add_recipe(
     image: Optional[UploadFile] = File(None),
     db: Session = Depends(get_db),
     is_public: bool = Form(...),
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(get_current_user),
+   difficulty: DifficultyLevel = Form(..., description="Difficulty level of the recipe"),
+   prep_time: str = Form(...)
 ):
     image_url = None
 
@@ -121,6 +142,8 @@ def add_recipe(
         created_at=datetime.utcnow(),
         share_token=str(uuid4()),
         is_public=is_public,
+        prep_time=prep_time,
+        difficulty=difficulty.value
     )
     db.add(new_recipe)
     db.commit()
@@ -155,7 +178,9 @@ def get_public_recipe(recipe_id: int, db: Session = Depends(get_db)):
         is_public = recipe.is_public,
         creator_name = recipe.creator.username if recipe.creator else "Unknown",
         created_at = recipe.created_at.isoformat() if recipe.created_at else None,
-        user_id=recipe.user_id
+        user_id=recipe.user_id,
+        prep_time=recipe.prep_time,
+        difficulty=recipe.difficulty,
     )
 
 @router.get("/me", response_model=list[RecipeResponse])
@@ -185,7 +210,9 @@ def get_my_recipes(
             is_public=recipe.is_public,
             creator_name=recipe.creator.username,
             created_at=recipe.created_at.isoformat() if recipe.created_at else None,
-            average_rating=round(avg_ratings.get(recipe.id), 2) if avg_ratings.get(recipe.id) else None
+            prep_time=recipe.prep_time,
+            average_rating=round(avg_ratings.get(recipe.id), 2) if avg_ratings.get(recipe.id) else None,
+            difficulty=recipe.difficulty
         )
         for recipe in recipes
     ]
@@ -284,7 +311,9 @@ def search_recipes(
             is_public=recipe.is_public,
             created_at=recipe.created_at.isoformat() if recipe.created_at else None,
             creator_name=creator,
-            user_id=recipe.user_id
+            prep_time=recipe.prep_time,
+            user_id=recipe.user_id,
+            difficulty=recipe.difficulty,
         ))
 
     return result
@@ -317,9 +346,11 @@ def get_recipe_by_id(
         share_token=recipe.share_token,
         is_public=recipe.is_public,
         created_at=recipe.created_at.isoformat() if recipe.created_at else None,
+        prep_time=recipe.prep_time,
         creator_name=recipe.creator.username if recipe.creator else "לא ידוע",
         average_rating=round(avg_rating, 2) if avg_rating else None,
-        user_id=recipe.user_id
+        user_id=recipe.user_id,
+        difficulty=recipe.difficulty
     )
 
 
@@ -349,7 +380,9 @@ def get_all_recipes_admin(
             share_token = recipe.share_token,
             is_public = recipe.is_public,
             creator_name = creator_name,
+            prep_time=recipe.prep_time,
             created_at = recipe.created_at.isoformat() if recipe.created_at else None,
+            difficulty = recipe.difficulty,
         ))
 
     return response
@@ -469,7 +502,9 @@ def get_top_rated_recipes(db: Session = Depends(get_db)):
             video_url=recipe.video_url,
             created_at=recipe.created_at.isoformat() if recipe.created_at else None,
             creator_name=creator_name,
-            user_id=recipe.user_id
+            user_id=recipe.user_id,
+            prep_time=recipe.prep_time,
+            difficulty=recipe.difficulty,
         ))
 
     return result
@@ -548,8 +583,10 @@ def get_top_rated_recipes(page: int = 1, db: Session = Depends(get_db)):
             creator_name=r.creator.username if r.creator else "לא ידוע",
             share_token=r.share_token,
             is_public=r.is_public,
+            prep_time=r.prep_time,
             average_rating=round(avg_rating, 2) if avg_rating else None,
-            user_id=r.user_id
+            user_id=r.user_id,
+            difficulty=r.difficulty
         ))
 
     return {"recipes": results, "total_pages": total_pages, "current_page": page}
@@ -582,9 +619,11 @@ def get_random_recipes(page: int = 1, db: Session = Depends(get_db)):
             created_at=r.created_at.isoformat() if r.created_at else None,
             creator_name=r.creator.username if r.creator else "לא ידוע",
             share_token=r.share_token,
+            prep_time=r.prep_time,
             is_public=r.is_public,
             average_rating=round(avg_rating, 2) if avg_rating else None,
-            user_id=r.user_id
+            user_id=r.user_id,
+            difficulty=r.difficulty
         ))
 
     return {"recipes": results, "total_pages": total_pages, "current_page": page}
@@ -615,12 +654,14 @@ def get_recent_recipes(page: int = 1, db: Session = Depends(get_db)):
             instructions=r.instructions,
             image_url=r.image_url,
             video_url=r.video_url,
+            prep_time=r.prep_time,
             created_at=r.created_at.isoformat() if r.created_at else None,
             creator_name=r.creator.username if r.creator else "לא ידוע",
             share_token=r.share_token,
             is_public=r.is_public,
             average_rating=round(avg_rating, 2) if avg_rating else None,
-            user_id=r.user_id
+            user_id=r.user_id,
+            difficulty=r.difficulty
         ))
 
     return {"recipes": results, "total_pages": total_pages, "current_page": page}
@@ -653,8 +694,10 @@ def get_most_favorited_recipes(page: int = 1, db: Session = Depends(get_db)):
             creator_name=r.creator.username if r.creator else "לא ידוע",
             share_token=r.share_token,
             is_public=r.is_public,
+            prep_time=r.prep_time,
             average_rating=round(avg_rating, 2) if avg_rating else None,
-            user_id=r.user_id
+            user_id=r.user_id,
+            difficulty=r.difficulty
         ))
 
     return {"recipes": results, "total_pages": total_pages, "current_page": page}

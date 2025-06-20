@@ -58,7 +58,9 @@ def get_favorites(
                     creator_name=f.recipe.creator.username if f.recipe.creator else "Unknown",
                     created_at=f.recipe.created_at.isoformat() if f.recipe.created_at else None,
                     share_token=f.recipe.share_token,
-                    is_public=f.recipe.is_public
+                    is_public=f.recipe.is_public,
+                    prep_time=f.recipe.prep_time,
+                    difficulty=f.recipe.difficulty
                 ))
 
 

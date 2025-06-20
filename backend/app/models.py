@@ -36,6 +36,8 @@ class Recipe(Base):
     is_public = Column(Boolean, default=True)
     created_at = Column(DateTime, default=datetime.utcnow)
     share_token = Column(String, unique=True, nullable=True, index=True)
+    prep_time = Column(String, nullable=False)       # 🆕 זמן הכנה
+    difficulty = Column(String, nullable=True)       # 🆕 רמת קושי
 
     user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
     creator = relationship("User", back_populates="recipes")
