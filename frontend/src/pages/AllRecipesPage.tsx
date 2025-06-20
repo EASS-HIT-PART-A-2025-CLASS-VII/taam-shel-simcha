@@ -48,12 +48,16 @@ export default function AllPublicRecipesPage() {
   }, []);
 
   useEffect(() => {
+    setPage(1); // 🆕 חזרה לעמוד הראשון כאשר סוג המיון משתנה
+  }, [sort]);
+
+  useEffect(() => {
     if (!isSearchMode) fetchRecipes();
   }, [sort, page]);
 
   const fetchRecipes = async () => {
     try {
-      const data = await getSortedRecipes(sort, page); // ✅ שימוש בפונקציה עם מיון
+      const data = await getSortedRecipes(sort, page);
       setRecipes(data.recipes);
       setTotalPages(data.total_pages);
     } catch (err) {
@@ -143,7 +147,7 @@ export default function AllPublicRecipesPage() {
                   key={option.value}
                   onClick={() => {
                     setSort(option.value);
-                    setDropdownOpen(false);
+                    setDropdownOpen(false); // 🆕 סגירת תפריט
                   }}
                   className={`block w-full px-4 py-2 text-sm hover:bg-gray-100 ${
                     sort === option.value ? "font-bold text-primary" : ""
@@ -226,25 +230,36 @@ export default function AllPublicRecipesPage() {
             ))}
           </div>
 
-          <div className="flex justify-center mt-6 gap-4">
-            <button
-              onClick={() => setPage((prev) => (prev < totalPages ? prev + 1 : prev))}
-              disabled={page >= totalPages}
-              className="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400 disabled:opacity-50"
-            >
-              הבא ▶️
-            </button>
-            <span className="px-4 py-2 text-sm">
-              עמוד {page} מתוך {totalPages}
-            </span>
-            <button
-              onClick={() => setPage((prev) => Math.max(prev - 1, 1))}
-              disabled={page === 1}
-              className="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400 disabled:opacity-50"
-            >
-              ◀️ הקודם
-            </button>
-          </div>
+          {!isSearchMode && totalPages > 1 && (
+            <div className="flex justify-center mt-6 gap-4">
+              <button
+                onClick={() => setPage((prev) => (prev < totalPages ? prev + 1 : prev))}
+                disabled={page >= totalPages}
+                className="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400 disabled:opacity-50"
+              >
+               ▶️ הבא 
+              </button>
+              <span className="px-4 py-2 text-sm">
+                עמוד {page} מתוך {totalPages}
+              </span>
+              
+              <button
+                onClick={() => setPage((prev) => Math.max(prev - 1, 1))}
+                disabled={page === 1}
+                className="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400 disabled:opacity-50"
+              >
+                ◀️ הקודם
+              </button>
+            </div>
+          )}
+          <a
+              href="mailto:taam.shel.simcha@gmail.com"
+              className="fixed bottom-6 right-6 flex items-center gap-2 bg-black text-white px-4 py-2 rounded-full shadow-lg hover:bg-gray-800 transition z-50" 
+              title="לחץ כאן לפנות אלינו במייל"
+                  >
+              <span className="hidden sm:inline text-sm font-semibold">צריכים עזרה❓</span>
+          </a>
+
         </>
       )}
     </div>

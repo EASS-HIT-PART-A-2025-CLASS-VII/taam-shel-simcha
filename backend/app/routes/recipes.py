@@ -74,13 +74,13 @@ def get_my_recipes(db: Session = Depends(get_db), current_user: User = Depends(g
 
 @router.delete("/{recipe_id}")
 def delete_recipe( recipe_id: int, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
-    return recipe_services.delete_recipe(db, recipe_id, current_user)
+    return recipe_services.delete_recipe(recipe_id, db, current_user)
     
 
 
 @router.put("/{recipe_id}")
 def update_recipe(recipe_id: int,updated_data: RecipeUpdate,db: Session = Depends(get_db),current_user: User = Depends(get_current_user)):
-    return recipe_services.update_recipe(db, recipe_id, updated_data, current_user)
+    return recipe_services.update_recipe(recipe_id,updated_data, db, current_user)
 
 
 
@@ -105,7 +105,7 @@ def get_all_recipes_admin(current_user: User = Depends(admin_required),db: Sessi
     
 
 @router.delete("/admin/recipes/{recipe_id}")
-def delete_recipe_admin(recipe_id: int,db: Session = Depends(get_db),current_user: User = Depends(admin_required)):
+def delete_recipe_admin(recipe_id: int, db: Session = Depends(get_db),current_user: User = Depends(admin_required)):
     return recipe_services.delete_recipe_admin(recipe_id, db, current_user)
 
 @router.put("/admin/recipes/{recipe_id}")

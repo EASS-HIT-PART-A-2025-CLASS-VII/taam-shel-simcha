@@ -71,6 +71,27 @@ export default function LandingPage() {
           </Link>
         </div>
       </section>
+
+      {/* תמיכה ופניות */}  
+<section className="bg-gray-50 text-center py-10 px-4 text-gray-700" dir="rtl">
+  <div className="max-w-xl mx-auto">
+    <h2 className="text-2xl font-bold mb-3"> צריכים עזרה?</h2>
+    <p className="text-base mb-5">
+      אם נתקלתם בבעיה, יש לכם שאלה, או שאתם זקוקים לעזרה – אנחנו כאן בשבילכם!
+      <br />
+      כתבו לנו בכל עת למייל:
+      <span className="text-orange-600 font-semibold ms-1">taam.shel.simcha@gmail.com</span>
+    </p>
+    <a
+      href="mailto:taam.shel.simcha@gmail.com"
+      className="inline-block bg-orange-500 text-white px-5 py-2 rounded-full hover:bg-orange-600 transition shadow"
+    >
+      ✉️ שלחו לנו מייל
+    </a>
+  </div>
+</section>
+
+
     </div>
   );
 }

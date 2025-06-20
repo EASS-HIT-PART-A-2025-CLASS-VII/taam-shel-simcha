@@ -56,11 +56,16 @@ def get_favorites(db: Session ,current_user: User):
     return response
 
 
-def remove_favorite(recipe_id: int,db: Session, current_user: User):
-    Recipe = db.query(Favorite).filter(Favorite.user_id == current_user.id, Favorite.recipe_id == recipe_id).first()
-    if not Recipe:
+def remove_favorite(recipe_id: int, db: Session, current_user: User):
+    fav_to_delete = db.query(Favorite).filter(
+        Favorite.user_id == current_user.id,
+        Favorite.recipe_id == recipe_id
+    ).first()
+
+    if not fav_to_delete:
         raise HTTPException(status_code=404, detail="Favorite not found")
-    db.delete(Recipe)
+
+    db.delete(fav_to_delete)
     db.commit()
-    
+
     return {"message": "Recipe removed from favorites"}

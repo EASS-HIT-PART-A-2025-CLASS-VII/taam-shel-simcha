@@ -270,7 +270,7 @@ def get_my_recipes(db: Session, current_user: User):
     ]
 
 
-def delete_recipe(recipe_id: int,db: Session ,current_user):
+def delete_recipe(recipe_id: int, db: Session , current_user):
     recipe = db.query(models.Recipe).filter(models.Recipe.id == recipe_id).first()
 
     if not recipe:
