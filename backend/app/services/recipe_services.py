@@ -9,7 +9,7 @@ from fastapi import HTTPException, UploadFile, BackgroundTasks
 from datetime import datetime
 from uuid import uuid4
 from typing import Optional
-import models
+from app import models
 from app.services.email import send_rating_notification_email, send_recipe_email_with_pdf
 
 PAGE_SIZE = 8
@@ -664,14 +664,19 @@ def get_recent_recipes(db: Session, page: int = 1):
 
 
 def get_most_favorited_recipes(db: Session, page: int = 1):
-    recipes = get_most_recent_recipes_from_db(db)
+    offset = (page - 1) * PAGE_SIZE
 
-    if not recipes:
-        recipes = get_top_rated_recipes_raw(db)
+    # שליפת מתכונים עם מספר מועדפים > 0, ממוין לפי כמות מועדפים
+    recipes_query = (
+        db.query(Recipe)
+        .join(Favorite)
+        .group_by(Recipe.id)
+        .having(func.count(Favorite.id) > 0)
+        .order_by(func.count(Favorite.id).desc())
+    )
 
-    total = len(recipes)
-    paginated = recipes[(page - 1) * PAGE_SIZE : page * PAGE_SIZE]
-    total_pages = (total + PAGE_SIZE - 1) // PAGE_SIZE
+    total = recipes_query.count()
+    paginated = recipes_query.offset(offset).limit(PAGE_SIZE).all()
 
     results = []
     for r in paginated:
@@ -694,6 +699,7 @@ def get_most_favorited_recipes(db: Session, page: int = 1):
             difficulty=r.difficulty
         ))
 
+    total_pages = (total + PAGE_SIZE - 1) // PAGE_SIZE
     return {"recipes": results, "total_pages": total_pages, "current_page": page}
 
 

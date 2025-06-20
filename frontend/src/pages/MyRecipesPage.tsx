@@ -1,5 +1,11 @@
 import { useEffect, useState } from "react";
-import { getMyRecipes, addToFavorites, removeFromFavorites, rateRecipe } from "../services/recipeService";
+import {
+  getMyRecipes,
+  getFavorites,
+  addToFavorites,
+  removeFromFavorites,
+  rateRecipe,
+} from "../services/recipeService";
 import { Recipe } from "../types/Recipe";
 import { Link } from "react-router-dom";
 import RecipeCard from "../components/RecipeCard";
@@ -13,10 +19,12 @@ export default function MyRecipesPage() {
   useEffect(() => {
     async function fetchData() {
       try {
-        const data = await getMyRecipes();
-        setRecipes(data);
-        // כאן אתה יכול לשלוף את המועדפים האמיתיים אם יש לך את זה מופרד (כרגע דמה)
-        setFavorites(data.filter((r) => r.is_public).map((r) => r.id));
+        const myRecipes = await getMyRecipes();
+        const favRecipes = await getFavorites();
+        const favIds = favRecipes;
+
+        setRecipes(myRecipes);
+        setFavorites(favIds);
       } catch {
         setError("שגיאה בטעינת המתכונים שלי 😥");
       } finally {
@@ -42,7 +50,9 @@ export default function MyRecipesPage() {
 
   return (
     <div className="p-4 text-right" dir="rtl">
-      <h1 className="text-3xl font-bold text-primary mb-6 text-center">המתכונים שלי 🍲</h1>
+      <h1 className="text-3xl font-bold text-primary mb-6 text-center">
+        המתכונים שלי 🍲
+      </h1>
 
       <div className="mb-4 text-center">
         <Link

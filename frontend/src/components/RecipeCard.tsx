@@ -60,18 +60,33 @@ export default function RecipeCard({
 
         <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent" />
 
-        {recipe.difficulty && (
-          <div className="absolute bottom-2 left-2 px-3 py-1.5 bg-white/90 text-gray-800 text-sm font-semibold rounded-full shadow-sm">
-            {getDifficultyText(recipe.difficulty)}
-          </div>
-        )}
+        <div className="absolute bottom-3 right-3 flex gap-2 flex-wrap items-center z-10">
+  {recipe.difficulty && (
+    <div
+      className={`px-3 py-1.5 rounded-full text-xs font-semibold shadow-sm backdrop-blur-sm ${(() => {
+        switch (recipe.difficulty) {
+          case "Easy":
+            return "bg-green-100 text-green-800";
+          case "Medium":
+            return "bg-yellow-100 text-yellow-800";
+          case "Hard":
+            return "bg-red-100 text-red-800";
+          default:
+            return "bg-gray-100 text-gray-800";
+        }
+      })()}`}
+    >
+      🎯 {getDifficultyText(recipe.difficulty)}
+    </div>
+  )}
 
-        {recipe.prep_time && (
-          <div className="absolute bottom-2 right-2 px-3 py-1.5 bg-white/90 text-gray-800 text-sm font-semibold rounded-full shadow-sm flex items-center gap-1">
-            <Clock className="w-4 h-4" />
-            <span>{recipe.prep_time}</span>
-          </div>
-        )}
+  {recipe.prep_time && (
+    <div className="px-3 py-1.5 rounded-full text-xs font-semibold bg-purple-100 text-purple-800 shadow-sm backdrop-blur-sm">
+      🕒 {recipe.prep_time} דק'
+    </div>
+  )}
+</div>
+
 
         {recipe.average_rating && recipe.average_rating > 0 && (
           <div className="absolute top-2 right-2 bg-white/90 rounded-full px-2 py-1 flex items-center gap-1 shadow">
