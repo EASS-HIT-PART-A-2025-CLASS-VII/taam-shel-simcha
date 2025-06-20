@@ -1,4 +1,3 @@
-// components/RecipeCard.tsx
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import { Heart, Star, Clock, ChefHat } from "lucide-react";
@@ -11,7 +10,7 @@ interface RecipeCardProps {
   isFavorited: boolean;
   onToggleFavorite: (id: number) => void;
   onRate: (rating: number) => void;
-   isMine?: boolean;
+  isMine?: boolean;
 }
 
 export default function RecipeCard({
@@ -39,10 +38,9 @@ export default function RecipeCard({
   return (
     <Link
       to={`/recipes/${recipe.id}`}
-      className="group relative bg-white rounded-xl shadow hover:shadow-lg transition cursor-pointer overflow-hidden border border-gray-200 w-[300px] no-underline text-inherit"
+      className="group relative bg-white rounded-xl shadow hover:shadow-lg transition cursor-pointer overflow-visible border border-gray-200 w-[300px] no-underline text-inherit"
       dir="rtl"
     >
-      {/* אזור תמונה */}
       <div className="relative h-48 bg-gradient-to-br from-gray-100 to-gray-200">
         {!imageError && recipe.image_url?.trim() ? (
           <img
@@ -62,14 +60,12 @@ export default function RecipeCard({
 
         <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent" />
 
-        {/* רמת קושי */}
         {recipe.difficulty && (
           <div className="absolute bottom-2 left-2 px-3 py-1.5 bg-white/90 text-gray-800 text-sm font-semibold rounded-full shadow-sm">
             {getDifficultyText(recipe.difficulty)}
           </div>
         )}
 
-        {/* זמן הכנה */}
         {recipe.prep_time && (
           <div className="absolute bottom-2 right-2 px-3 py-1.5 bg-white/90 text-gray-800 text-sm font-semibold rounded-full shadow-sm flex items-center gap-1">
             <Clock className="w-4 h-4" />
@@ -77,7 +73,6 @@ export default function RecipeCard({
           </div>
         )}
 
-        {/* דירוג ממוצע */}
         {recipe.average_rating && recipe.average_rating > 0 && (
           <div className="absolute top-2 right-2 bg-white/90 rounded-full px-2 py-1 flex items-center gap-1 shadow">
             <Star className="w-4 h-4 text-yellow-400 fill-yellow-400" />
@@ -87,13 +82,12 @@ export default function RecipeCard({
           </div>
         )}
 
-        {/* שיתוף + מועדפים */}
-        <div className="absolute top-2 left-2 flex gap-2">
+        <div className="absolute top-2 left-2 flex gap-2 z-50">
           <RecipeShareButton recipeId={recipe.id} title={recipe.title} />
           <button
             onClick={(e) => {
-              e.preventDefault(); // מונע מה־<Link> לפעול
-              e.stopPropagation(); // מונע bubbling
+              e.preventDefault();
+              e.stopPropagation();
               onToggleFavorite(recipe.id);
             }}
             className="p-2 bg-white/90 rounded-full shadow hover:shadow-md transition"
@@ -110,26 +104,30 @@ export default function RecipeCard({
         </div>
       </div>
 
-      {/* תוכן */}
       <div className="p-4 flex flex-col gap-2">
         <div>
           <h3 className="text-lg font-bold text-gray-800 line-clamp-2 group-hover:text-orange-600 transition">
             {recipe.title}
           </h3>
-          <div className="text-sm text-gray-600 flex items-center justify-end gap-1" dir="ltr">
+          <div
+            className="text-sm text-gray-600 flex items-center justify-end gap-1"
+            dir="ltr"
+          >
             {recipe.creator_name}
             <ChefHat className="w-4 h-4" />
           </div>
         </div>
 
         {recipe.description && (
-          <p className="text-sm text-gray-600 line-clamp-2">{recipe.description}</p>
+          <p className="text-sm text-gray-600 line-clamp-2">
+            {recipe.description}
+          </p>
         )}
 
         <div
           onClick={(e) => {
             e.preventDefault();
-            e.stopPropagation(); // מונע לחיצה על הלינק
+            e.stopPropagation();
           }}
         >
           <StarRating onRate={onRate} size="sm" />

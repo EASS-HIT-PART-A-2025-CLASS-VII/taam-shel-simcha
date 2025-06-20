@@ -47,7 +47,6 @@ export default function RecipeShareButton({ recipeId, title }: RecipeShareButton
     }
   };
 
-  // סגירת התפריט בלחיצה מחוץ
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (wrapperRef.current && !wrapperRef.current.contains(event.target as Node)) {
@@ -68,7 +67,7 @@ export default function RecipeShareButton({ recipeId, title }: RecipeShareButton
   }, [menuOpen]);
 
   return (
-    <div className="relative z-50" ref={wrapperRef}>
+    <div className="relative z-[999]" ref={wrapperRef}>
       <button
         className="text-xl"
         title="שיתוף"
@@ -84,9 +83,8 @@ export default function RecipeShareButton({ recipeId, title }: RecipeShareButton
       {menuOpen && (
         <div
           onClick={(e) => e.stopPropagation()}
-          className="absolute top-full right-0 mt-2 w-64 bg-white shadow-xl border rounded-xl z-50 text-sm p-3"
+          className="absolute top-full right-0 mt-2 w-64 bg-white shadow-xl border rounded-xl z-[999] text-sm p-3"
         >
-          {/* חץ פינה ימנית עליונה */}
           <div className="absolute -top-2 right-3 w-3 h-3 rotate-45 bg-white border-t border-r border-gray-300" />
 
           {!emailMode ? (
