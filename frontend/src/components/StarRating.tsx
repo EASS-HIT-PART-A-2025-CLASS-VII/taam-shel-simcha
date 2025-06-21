@@ -59,10 +59,15 @@ export default function StarRating({
           type="button"
         >
           <Star
+            data-testid={
+            star <= (hoverRating || currentRating)
+              ? "star-filled"
+              : "star-empty"
+              }
             className={`${sizeClasses[size]} ${
-              star <= (hoverRating || currentRating)
-                ? "fill-yellow-400 text-yellow-400"
-                : "fill-gray-200 text-gray-200"
+            star <= (hoverRating || currentRating)
+            ? "fill-yellow-400 text-yellow-400"
+            : "fill-gray-200 text-gray-200"
             } transition-colors duration-150`}
           />
         </button>

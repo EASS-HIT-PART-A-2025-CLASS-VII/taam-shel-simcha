@@ -1,12 +1,12 @@
-import { defineConfig } from 'vite';
+import { defineConfig } from 'vitest/config';
 import react from '@vitejs/plugin-react';
 
+// ✅ הגדרה מעודכנת שמכילה גם את setupFiles ל־Vitest
 export default defineConfig({
   plugins: [react()],
   server: {
     port: 5173,
   },
-  // ✅ חשוב: זה מאפשר לנווט ישירות לנתיבים כמו /reset-password
   build: {
     outDir: 'dist',
   },
@@ -15,12 +15,13 @@ export default defineConfig({
       '@': '/src',
     },
   },
-  // זה החלק הקריטי:
   base: '/',
-  // זה מה שמאפשר ל-Vite להחזיר תמיד index.html עבור כל route
-  // כדי ש-react-router יטפל בניווט
-  // אם זה חסר – תוסיף:
   optimizeDeps: {
     include: [],
+  },
+  test: {
+    globals: true,
+    environment: 'jsdom',
+    setupFiles: './src/tests/setup.ts',  // ✅ זה הקובץ שהוספנו
   },
 });
