@@ -6,16 +6,24 @@ app = FastAPI()
 
 @app.post("/generate-recipe", response_model=RecipeResponse)
 def generate_recipe(data: RecipeRequest):
-    ingredients = extract_hebrew_ingredients(data.ingredients_text)
+    print("🔍 קלט מהבקאנד:", data.ingredients_text)
 
-    if not ingredients:
-        raise HTTPException(status_code=400, detail="לא נמצאו רכיבים תקפים. נסה שוב עם מילים כמו 'ביצה', 'עגבנייה' וכו'.")
+    try:
+        ingredients = extract_hebrew_ingredients(data.ingredients_text)
+        print("📦 רכיבים שזוהו:", ingredients)
 
-    result = generate_recipe_with_openai(ingredients)
+        if not ingredients:
+            raise HTTPException(status_code=400, detail="לא נמצאו רכיבים תקפים. נסה שוב עם מילים כמו 'ביצה', 'עגבנייה' וכו'.")
 
-    return RecipeResponse(
-        title=result["title"],
-        ingredients=result["ingredients"],
-        ingredients_text=result["ingredients_text"],
-        instructions=result["instructions"]
-    )
+        result = generate_recipe_with_openai(ingredients)
+        print("✅ תשובה מה-OpenAI:", result)
+
+        return RecipeResponse(
+            title=result["title"],
+            ingredients=result["ingredients"],
+            ingredients_text=result["ingredients_text"],
+            instructions=result["instructions"]
+        )
+    except Exception as e:
+        print("❌ שגיאה פנימית:", str(e))
+        raise HTTPException(status_code=500, detail=str(e))

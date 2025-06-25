@@ -62,7 +62,7 @@ export default function RecipeDetailsPage() {
   };
 
   if (!recipe) return <div className="p-6 text-white">טוען מתכון...</div>;
-  console.log("🎥 video_url:", recipe.video_url);
+ 
 
 
   const ingredients = recipe.ingredients?.split(/[\n,]+/).map((item) => item.trim()).filter(Boolean);
@@ -75,6 +75,8 @@ export default function RecipeDetailsPage() {
     : "תאריך לא זמין";
 
   const canEdit = currentUser?.id === recipe.user_id || currentUser?.is_admin;
+
+  const videoId = recipe.video_url?.trim() ? extractVideoId(recipe.video_url) : null;
 
   const difficultyColor = {
     Easy: "bg-green-100 text-green-800",
@@ -214,11 +216,11 @@ export default function RecipeDetailsPage() {
           )}
         </div>
 
-        {recipe.video_url?.trim() && extractVideoId(recipe.video_url) && (
+        {videoId && videoId.length > 0 && (
           <div className="mb-10 w-full flex justify-center">
             <div className="w-full max-w-4xl">
               <h2 className="text-xl font-semibold mb-3 text-primary">🎬 סרטון הכנה</h2>
-              <YouTubePlayer videoId={extractVideoId(recipe.video_url)} />
+              <YouTubePlayer videoId={videoId} />
             </div>
           </div>
         )}

@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { generateAIRecipe } from "../services/aiService";
+import { data } from "react-router-dom";
 
 export default function AiRecipePage() {
   const [ingredients, setIngredients] = useState("");
@@ -17,6 +18,8 @@ export default function AiRecipePage() {
     } finally {
       setLoading(false);
     }
+
+    console.log("AI Recipe Result:", data);
   };
 
   return (
