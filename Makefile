@@ -1,8 +1,9 @@
 # Makefile לפרויקט "טעם של שמחה"
 
 # 🔍 מריץ את כל הבדיקות ל־FastAPI
-test:
-	PYTHONPATH=. pytest
+test-backend:
+	cd backend && PYTHONPATH=. pytest
+
 
 # 🚀 מריץ את השרת FastAPI עם reload (ללא Docker)
 run:
@@ -15,6 +16,17 @@ test-verbose:
 # 🎯 בדיקות לקובץ יחיד: make test-file FILE=tests/test_users_service.py
 test-file:
 	PYTHONPATH=. pytest $(FILE)
+
+
+# 🧪 בדיקות לפרונטנד (Vitest)
+test-frontend:
+	cd frontend && npx vitest
+
+# 🧪 בדיקות לפרונטנד עם UI אינטראקטיבי
+test-frontend-ui:
+	cd frontend && npx vitest --ui
+
+
 
 # 🐳 מריץ את כל השירותים
 up:

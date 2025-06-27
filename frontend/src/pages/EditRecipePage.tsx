@@ -48,11 +48,21 @@ export default function EditRecipePage() {
 
     const formData = new FormData();
     formData.append("file", file);
-    formData.append("upload_preset", "your_upload_preset"); // 👈 שנה לערך שלך
+    formData.append("upload_preset", "taamshelsimcha");
+    formData.append("folder", "recipes");
     setUploading(true);
 
+    for (const [key, value] of formData.entries()) {
+      console.log(`🧾 ${key}:`, value);
+    }
+
+
+    console.log("Sending image to Cloudinary:", {file,preset: "taamshelsimcha",});
+
+
+
     try {
-      const res = await fetch("https://api.cloudinary.com/v1_1/your_cloud_name/image/upload", {
+      const res = await fetch("https://api.cloudinary.com/v1_1/dgk8jtddu/image/upload", {
         method: "POST",
         body: formData,
       });

@@ -33,8 +33,8 @@
 
 ## 🧪 בדיקות (Unit Tests)
 
-### `make test`
-מריץ את כל הבדיקות בפרויקט (`pytest`).
+### `make test-backend`
+מריץ את כל הבדיקות של הבאקנד בפרויקט (`pytest`).
 
 ### `make test-verbose`
 מריץ את כל הבדיקות עם פלט מפורט יותר (`-v`).
@@ -42,8 +42,8 @@
 ### `make test-file FILE=path/to/test.py`
 מריץ בדיקות רק לקובץ מסוים, לדוגמה:
 
-
-
+### `make test-frontend`
+מריץ את כל הבדיקות של הפרונט בפרויקט 
 
 ### `make test-docker`
 מריץ את הבדיקות **מתוך קונטיינר Docker של backend**.
