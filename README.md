@@ -49,6 +49,16 @@
 
 ---
 
+## 🎥 Live Demo
+
+[![צפה בדמו ביוטיוב](https://img.youtube.com/vi/aPrUFiptg8c/0.jpg)](https://www.youtube.com/watch?v=aPrUFiptg8c "צפה בדמו")
+
+> 🎬 This short demo showcases the full flow of the app — from registration to adding, rating, sharing, and commenting on recipes.
+
+
+
+---
+
 ## 🚀 Tech Stack
 
 ### Backend

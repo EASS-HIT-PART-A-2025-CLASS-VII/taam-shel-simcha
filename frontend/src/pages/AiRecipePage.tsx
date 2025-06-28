@@ -45,7 +45,7 @@ export default function AiRecipePage() {
       </form>
 
       {result && (
-  <div className="mt-6 bg-white shadow p-4 rounded space-y-4" dir="rtl">
+   <div className="mt-6 bg-white shadow p-4 rounded space-y-4 max-h-[400px] overflow-y-auto" dir="rtl">
     <h3 className="text-xl font-bold">{result.title}</h3>
 
     <div>
