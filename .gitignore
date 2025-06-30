@@ -57,4 +57,4 @@ media/
 
 !.env.example
 !backend/.env.example
-!ai_recipe/.env.example
+!ai_recipe/.env.exampleAi
