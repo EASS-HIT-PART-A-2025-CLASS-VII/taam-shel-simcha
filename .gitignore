@@ -53,3 +53,8 @@ media/
 
 *.expo/
 *.expo-shared/
+
+
+!env.example
+!backend/env.example
+!ai_recipe/env.example
