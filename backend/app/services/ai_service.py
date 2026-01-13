@@ -11,7 +11,7 @@ async def request_ai_recipe(ingredients_text: str):
             response = await client.post(AI_SERVICE_URL, json=payload, timeout=25.0)
             print("📥 תשובה גולמית:", response.text)
             response.raise_for_status()
-            result = response.json()  # בלי await!!
+            result = response.json()  
             print("✅ JSON אחרי פיענוח:", result)
             return result
 

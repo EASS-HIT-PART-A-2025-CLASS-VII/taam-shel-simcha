@@ -161,7 +161,7 @@ def forgot_password(request: ForgotPasswordRequest, db: Session):
     reset_token = create_reset_token(user.id)
 
 
-    reset_link = f"http://localhost:5173/reset-password?token={reset_token}"
+    reset_link = f"http://localhost:3000/reset-password?token={reset_token}"
     send_reset_email(user.email, reset_link)
 
     return {"message": "If this email exists, a reset link was sent"}

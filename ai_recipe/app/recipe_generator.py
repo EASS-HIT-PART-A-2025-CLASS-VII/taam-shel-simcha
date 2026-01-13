@@ -1,167 +1,64 @@
+import json
 import re
+from urllib import response
 from openai import OpenAI
 from app.config import OPENAI_API_KEY
 
-
-
-
-KNOWN_INGREDIENTS_HE = {
-    "אבטיח", "אבקת אפייה", "אבקת סודה", "אבקת סוכר", "אגוז מוסקט", "אגס", "אורגנו", "אורז", "אזוב", "אטריות",
-    "אמנון", "אננס", "אפונה", "אפונה יבשה", "אפרסק", "ארטישוק", "אשכולית", "בהרט", "בורגול", "בזיליקום",
-    "בצל", "בצל יבש", "בצל ירוק", "בצל סגול", "בצל מטוגן", "בצלצלים", "בצק עלים", "בצק פילו", "בצק פריך",
-    "ביצה", "ביצים קשות", "ביצים", "בטטה", "במיה", "ברוקולי", "בשמל", "גבינה", "גבינה לבנה",
-    "גבינה צהובה", "גבינת גאודה", "גבינת מוצרלה", "גבינת פטה", "גבינת פריזאי", "גבינת קוטג׳",
-    "גבינת ריקוטה", "גבינת שמנת", "גבינת צ'דר",
-    "גזר", "גרגרי חרדל", "גרנולה", "דג", "דג מרלוזה", "דבש", "דובדבנים", "דניס", "הודו", "וניל",
-    "חזה הודו", "חזה עוף", "חזה אווז", "חלב", "חלב שקדים", "חלב סויה", "חלב מרוכז", "חלב שיבולת שועל",
-    "חלה", "חומוס", "חסה", "חיטה", "חמאה", "חמין", "חציל", "טחינה", "טחינה גולמית", "טחינה ירוקה",
-    "טופו", "טלה", "טימין", "טונה", "יין אדום", "יין לבן", "יוגורט", "כוסברה", "כמון", "כורכום",
-    "כרוב", "כרובית", "כרישה", "כנפיים", "לחם", "לחוח", "לחמנייה", "לבן", "לימון", "ליים",
-    "מלח", "מלח גס", "מלח ים", "מלון", "מלפפון", "מנגו", "מנטה", "מרגרינה", "מרשמלו", "מסטיק",
-    "משמש", "מים", "מים פושרים", "מים רותחים", "מיץ לימון", "מיץ תפוזים", "נקטרינה", "נקניק",
-    "עלי בייבי", "עלי דפנה", "עוגה", "עוגת גבינה", "עוגת שוקולד", "עוגיות", "עוף", "עוף בגריל",
-    "עוף שלם", "עולש", "עגבנייה", "עגבניות מיובשות", "עדשים", "עין", "עפרונות סוכר", "פאק צ'וי",
-    "פול", "פטרוזיליה", "פטריות", "פילה דג", "פילה סלמון", "פיתה", "פיתה קלויה", "פלפל אדום",
-    "פלפל ירוק", "פלפל לבן", "פלפל שחור", "פלפל צהוב", "פנקייק", "פסטה", "פצפוצי אורז", "פצפוצי שוקולד",
-    "פסטרמה", "פתיתים", "פרג", "פרמזן", "פרפה", "צ׳ילי", "צנון", "צימוקים", "קייל", "קמח",
-    "קמח תירס", "קינמון", "קינואה", "קקאו", "קקאו מריר", "קוקוס טחון", "קוקוס קלוי", "קורנפלקס", "קוסקוס",
-    "קטשופ", "קלמנטינה", "קרח", "קרמל", "קרקר", "קצפת", "קציצות", "קציצות ירק", "קציצות בשר", "קציצות עוף",
-    "קפה", "קפה טורקי", "קפה נמס", "קשיו", "רוזמרין", "ריבת חלב", "ריבת תפוזים", "ריבת תות", "ריקוטה",
-    "רוטב עגבניות", "רוטב ברביקיו", "רוטב פסטו", "רוטב צ׳ילי", "רוטב סויה", "רוטב שמנת", "רסק עגבניות",
-    "רולדה", "סוכר", "סוכר חום", "סוכריות", "סוכריות קישוט", "סילאן", "סלט ביצים", "סלט טונה", "סלט טבולה",
-    "סלט כרוב", "סלט יווני", "סמבוסק", "סרדינים", "סטייק", "שוקולד", "שוקולד מריר", "שוקולד לבן",
-    "שמן זית", "שמן חמניות", "שמן קנולה", "שמיר", "שמרים", "שני ביצים", "שעועית ירוקה", "שעועית לבנה",
-    "שעועית שחורה", "שזיף", "שום", "שניצל", "שווארמה", "תה", "תות", "תבלין גריל", "תבלין לפיצה",
-    "תבלין פיצה", "תבלין קארי", "תערובת תיבול", "תפוח", "תפוח אדמה", "תמרים", "תרד"
-}
-
-
-HEBREW_INGREDIENT_ALIASES = {
-    "עגבניות": "עגבנייה",
-    "ביצים": "ביצה",
-    "מלפפונים": "מלפפון",
-    "בצלים": "בצל",
-    "חסות": "חסה",
-    "פטריות": "פטריות",  # כבר מופיע ברבים ונמצא ב-KNOWN_INGREDIENTS_HE
-    "קציצות": "קציצות",  # אותו דבר – קיים כבר
-    "רוטבים": "רוטב שמנת",  # מיפוי לרוטב אחד אפשרי
-    "שומים": "שום",
-    "תפוחים": "תפוח",
-    "מרגרינות": "מרגרינה",
-    "טימינים": "טימין",
-    "קמחים": "קמח",
-    "עוגיות": "עוגיות",
-    "פסטרמות": "פסטרמה",
-    "פיתות": "פיתה",
-    "פרפות": "פרפה",
-    "סלטים": "סלט טבולה",  # לדוגמה
-    "יוגורטים": "יוגורט",
-    "פרמזנים": "פרמזן",
-    "ריקוטות": "ריקוטה",
-    "לחמניות": "לחמנייה",
-    "פסטות": "פסטה",
-    "עוגות": "עוגה",
-    "ריבתים": "ריבת תות",
-    "גזרים": "גזר",
-    "חצילים": "חציל",
-    "במיות": "במיה",
-    "פולים": "פול",
-    "כרובים": "כרוב"
-}
-
-
-
-STOPWORDS_HE = {"עם", "וגם", "קצת", "של", "מעט", "ו", "ו-", "ו."}
-
-
 client = OpenAI(api_key=OPENAI_API_KEY)
 
-def normalize_ingredient(word: str) -> str:
-    word = word.strip().lower()
+def generate_recipe_with_openai(ingredients: str) -> dict:
+    prompt = f"""
+You are a professional Israeli home chef and AI recipe generator.
 
-    # טיפול ב-ו' חיבור
-    if word.startswith("ו") and len(word) > 2:
-        word = word[1:]
+Your task is to create a realistic, tasty home-style recipe using only the ingredients provided by the user.
 
-    # אם המילה/צירוף נמצא במילון הנרדפות – החזר את התקני
-    if word in HEBREW_INGREDIENT_ALIASES:
-        return HEBREW_INGREDIENT_ALIASES[word]
+The user wrote this free-text ingredients list:
+"{ingredients}"
+"""
+    prompt += """
+Instructions:
+1. Understand the ingredients, even if written in Hebrew with typos or informal phrasing.
+2. Remove any items that are NOT edible or not food-related (e.g., soap, batteries, shampoo, paper, laptop, etc.).
+3. Create ONE complete dish using only the remaining edible ingredients (you may add basic pantry items like salt, pepper, oil, water).
+4. If ALL provided items are non-edible / not food-related, return a valid JSON object that asks the user to provide edible ingredients.
+5. The output MUST be in Hebrew.
+6. The output MUST be a valid JSON object and nothing else.
 
-    # אם מדובר בצירוף של 2 מילים – נרמל כל אחת מהן בנפרד
-    if " " in word:
-        parts = word.split()
-        normalized_parts = [HEBREW_INGREDIENT_ALIASES.get(p, p) for p in parts]
-        return " ".join(normalized_parts)
+The JSON format MUST be exactly:
 
-    return word
+{
+  "title": "<short appealing Hebrew dish name OR a short Hebrew message asking for edible ingredients>",
+  "ingredients": "<the original ingredients string exactly as received>",
+  "ingredients_text": "- <ingredient with quantity>\\n- <ingredient with quantity>\\n...",
+  "instructions": "1. <step one>\\n2. <step two>\\n3. <step three>\\n..."
+}
 
-
-
-def extract_hebrew_ingredients(text: str) -> list[str]:
-    text = text.lower()
-    text = re.sub(r"[^\w\sא-ת]", "", text)
-    words = text.split()
-
-    ingredients = []
-    i = 0
-    while i < len(words):
-        # נסה קודם 3 מילים (נדיר אבל עדיף להקדים)
-        if i + 2 < len(words):
-            three_words = f"{words[i]} {words[i+1]} {words[i+2]}"
-            normalized = normalize_ingredient(three_words)
-            if normalized in KNOWN_INGREDIENTS_HE:
-                ingredients.append(normalized)
-                i += 3
-                continue
-
-        # נסה 2 מילים
-        if i + 1 < len(words):
-            two_words = f"{words[i]} {words[i+1]}"
-            normalized = normalize_ingredient(two_words)
-            if normalized in KNOWN_INGREDIENTS_HE:
-                ingredients.append(normalized)
-                i += 2
-                continue
-
-        # נסה מילה אחת
-        word = normalize_ingredient(words[i])
-        if word in KNOWN_INGREDIENTS_HE:
-            ingredients.append(word)
-        i += 1
-
-    return ingredients
+Rules:
+- The recipe must be realistic and something a person can actually cook.
+- Do NOT invent main ingredients that were not mentioned by the user (except basic pantry items: salt, pepper, oil, water).
+- Any ingredients identified as non-edible or not food-related must be completely excluded from the recipe output and must not appear in the title, ingredients_text, or instructions.
+- If ALL items are non-edible, set:
+  - "title" to something like: "נא להזין רכיבים אכילים להכנת מתכון"
+  - "ingredients_text" to an empty string ""
+  - "instructions" to an empty string ""
+- The title should be a short, appealing Hebrew dish name (or the short request message if no edible ingredients exist).
+- Ingredients must include quantities (כוס, כף, יחידה, גרם וכו').
+- Instructions must be clear, short, and written as numbered steps.
+- Do not include explanations, notes, emojis or extra text — only the JSON in the exact format.
+"""
 
 
-
-def generate_recipe_with_openai(ingredients: list[str]) -> dict:
-    prompt = (
-        f"יש לי את הרכיבים הבאים: {', '.join(ingredients)}.\n"
-        "אנא כתוב לי מתכון ביתי וטעים שכולל:\n"
-        "- שם מנה בעברית\n"
-        "- רשימת מצרכים\n"
-        "- הוראות הכנה פשוטות וברורות"
-    )
 
     response = client.chat.completions.create(
-        model="gpt-3.5-turbo",
-        messages=[
-            {"role": "system", "content": "אתה שף ישראלי מקצועי, תן מתכונים בעברית בלבד."},
-            {"role": "user", "content": prompt}
-        ],
+        model="gpt-4o-mini",
+        messages=[{"role": "user", "content": prompt}],
+        response_format={"type": "json_object"},
         temperature=0.7,
         max_tokens=700
     )
 
-    content = response.choices[0].message.content.strip()
-    parts = content.split("הוראות הכנה:")
-    ingredients_text = parts[0].replace("מצרכים:", "").strip() if len(parts) > 1 else ""
-    instructions = parts[1].strip() if len(parts) > 1 else content
+    content = response.choices[0].message.content
+    recipe = json.loads(content)
+    return recipe
 
-    title = f"מנה עם {', '.join(ingredients[:-1])} ו{ingredients[-1]}" if len(ingredients) > 1 else f"מנה עם {ingredients[0]}"
-
-    return {
-        "title": title,
-        "ingredients": ingredients,
-        "ingredients_text": ingredients_text,
-        "instructions": instructions
-    }
+   

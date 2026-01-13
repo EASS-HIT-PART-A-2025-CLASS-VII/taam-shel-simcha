@@ -27,7 +27,7 @@ export default function ResetPasswordPage() {
       await axios.post("http://localhost:8000/auth/reset-password", {
         token,
         new_password: password,
-        confirm_password: confirmPassword,  // ← זה היה חסר
+        confirm_password: confirmPassword,  
         });
 
       setMessage("הסיסמה אופסה בהצלחה!");

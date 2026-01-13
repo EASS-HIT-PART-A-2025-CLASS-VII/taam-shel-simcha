@@ -6,6 +6,6 @@ class RecipeRequest(BaseModel):
 
 class RecipeResponse(BaseModel):
     title: str
-    ingredients: list[str]
+    ingredients: str
     ingredients_text: str  # ⬅️ חדש – הטקסט הגולמי של המצרכים
     instructions: str

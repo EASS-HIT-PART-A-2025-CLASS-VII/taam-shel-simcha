@@ -19,6 +19,8 @@ services:
       dockerfile: backend.dockerfile
     ports:
       - "8000:8000"
+    env_file:
+      - ./backend/.env
     depends_on:
       - db
       - ai-service

@@ -1,5 +1,5 @@
 from fastapi import FastAPI, HTTPException
-from app.recipe_generator import extract_hebrew_ingredients, generate_recipe_with_openai
+from app.recipe_generator import  generate_recipe_with_openai
 from app.schemas import RecipeRequest, RecipeResponse
 
 app = FastAPI()
@@ -9,13 +9,7 @@ def generate_recipe(data: RecipeRequest):
     print("🔍 קלט מהבקאנד:", data.ingredients_text)
 
     try:
-        ingredients = extract_hebrew_ingredients(data.ingredients_text)
-        print("📦 רכיבים שזוהו:", ingredients)
-
-        if not ingredients:
-            raise HTTPException(status_code=400, detail="לא נמצאו רכיבים תקפים. נסה שוב עם מילים כמו 'ביצה', 'עגבנייה' וכו'.")
-
-        result = generate_recipe_with_openai(ingredients)
+        result = generate_recipe_with_openai(data.ingredients_text)
         print("✅ תשובה מה-OpenAI:", result)
 
         return RecipeResponse(

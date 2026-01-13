@@ -3,6 +3,6 @@ from pydantic import BaseModel
 
 class RecipeAIResponse(BaseModel):
     title: str
-    ingredients: list[str]
+    ingredients: str
     ingredients_text: str
     instructions: str
