@@ -55,9 +55,6 @@
 
 > 🎬 This short demo showcases the full flow of the app — from registration to adding, rating, sharing, and commenting on recipes.
 
-> demo: https://youtu.be/nNwFVbXwC1U
-
-
 ---
 
 ## 🚀 Tech Stack
