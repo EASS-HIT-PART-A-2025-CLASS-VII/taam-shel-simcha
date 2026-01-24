@@ -1,12 +1,14 @@
-// src/pages/LoginPage.tsx
+// LoginPage.tsx
 import { useState } from "react";
 import { Button } from "../components/ui/button";
 import { Link, useNavigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const navigate = useNavigate(); 
+  const navigate = useNavigate();
+  const { setToken } = useAuth(); // ✅
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -20,9 +22,9 @@ export default function LoginPage() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.message || "Login failed");
 
-      localStorage.setItem("token", data.access_token);
+      setToken(data.access_token); // ✅ זה יגרום לרינדור מחדש בלי רענון
       alert("התחברת בהצלחה!");
-      navigate("/recipes"); 
+      navigate("/recipes");
     } catch (err: any) {
       alert(err.message);
     }
@@ -30,10 +32,7 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-background">
-      <form
-        onSubmit={handleLogin}
-        className="bg-white p-6 rounded-lg shadow-lg space-y-4 w-full max-w-sm text-center"
-      >
+      <form onSubmit={handleLogin} className="bg-white p-6 rounded-lg shadow-lg space-y-4 w-full max-w-sm text-center">
         <h2 className="text-2xl font-bold">התחברות</h2>
 
         <input
@@ -56,10 +55,7 @@ export default function LoginPage() {
         />
 
         <div className="w-full flex justify-end">
-          <Link
-            to="/forgot-password"
-            className="text-sm text-primary hover:underline hover:text-hover"
-          >
+          <Link to="/forgot-password" className="text-sm text-primary hover:underline hover:text-hover">
             שכחתי סיסמה
           </Link>
         </div>
@@ -69,10 +65,7 @@ export default function LoginPage() {
         </Button>
 
         <div className="mt-2">
-          <Link
-            to="/register"
-            className="text-sm text-primary hover:underline hover:text-hover"
-          >
+          <Link to="/register" className="text-sm text-primary hover:underline hover:text-hover">
             עדיין אין לך משתמש? הירשם עכשיו
           </Link>
         </div>

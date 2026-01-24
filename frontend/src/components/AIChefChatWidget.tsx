@@ -1,21 +1,37 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { chatAIRecipe, ChatMessage } from "../services/aiChatService";
+import RecipeModal from "./RecipeModal";
 
 type ReplyType = "question" | "confirm" | "recipe";
 
+type RecipeModalData = {
+  title: string;
+  body: string;
+};
+
+function extractTitleFromReply(reply: string) {
+  // מנסה לקחת כותרת מהשורה הראשונה אם היא קצרה/הגיונית
+  const firstLine = (reply || "").split("\n").map(s => s.trim()).find(Boolean) || "";
+  if (firstLine && firstLine.length <= 80) return firstLine;
+  return "המתכון שלך";
+}
+
 export default function AIChefChatWidget() {
+  
   const [open, setOpen] = useState(false);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
 
-  // נשמור את זה רק לדיבאג/לוגיקה עתידית – לא משפיע על UI
   const [lastType, setLastType] = useState<ReplyType>("question");
 
   const [messages, setMessages] = useState<ChatMessage[]>([
     { role: "assistant", content: "היי 😊 איזה מה בא לך לבשל היום?" },
   ]);
 
-  // ✅ ref שמחזיק תמיד את ההיסטוריה הכי עדכנית (מונע “סטייט ישן”)
+  // ✅ מודל מתכון
+  const [recipeModal, setRecipeModal] = useState<RecipeModalData | null>(null);
+
+  // ✅ ref להיסטוריה עדכנית
   const messagesRef = useRef<ChatMessage[]>(messages);
   useEffect(() => {
     messagesRef.current = messages;
@@ -40,12 +56,11 @@ export default function AIChefChatWidget() {
     const clean = text.trim();
     if (!clean || loading) return;
 
-    // 1) מוסיפים הודעת משתמש מיד (UI מהיר)
+    // 1) מוסיפים את הודעת המשתמש מיד
     const nextMessages: ChatMessage[] = [
       ...messagesRef.current,
       { role: "user", content: clean },
     ];
-
     messagesRef.current = nextMessages;
     setMessages(nextMessages);
 
@@ -54,11 +69,9 @@ export default function AIChefChatWidget() {
     setLoading(true);
 
     try {
-      // 3) קריאה לבקאנד עם כל ההיסטוריה
       const data = await chatAIRecipe(nextMessages);
       console.log("AI Chat Response:", data);
 
-      // 4) שומרים lastType (רק לדיבאג/לוגיקה עתידית)
       const normalizedType = String(data?.type ?? "").trim().toLowerCase();
       const safeType: ReplyType =
         normalizedType === "confirm" || normalizedType === "recipe"
@@ -67,14 +80,22 @@ export default function AIChefChatWidget() {
 
       setLastType(safeType);
 
-      // 5) מוסיפים תשובת בוט
+      // 3) מוסיפים תשובת בוט לצ׳אט (תמיד)
       const afterBot: ChatMessage[] = [
         ...messagesRef.current,
         { role: "assistant", content: data.reply },
       ];
-
       messagesRef.current = afterBot;
       setMessages(afterBot);
+
+      // 4) אם זה מתכון -> פותחים מודל
+      if (safeType === "recipe") {
+        const title = (data?.title && String(data.title).trim()) || extractTitleFromReply(data.reply);
+        setRecipeModal({
+          title,
+          body: data.reply,
+        });
+      }
     } catch (err) {
       console.error("AI Chat Error:", err);
 
@@ -82,9 +103,9 @@ export default function AIChefChatWidget() {
         ...messagesRef.current,
         { role: "assistant", content: "משהו השתבש 😅 נסי שוב בעוד רגע." },
       ];
-
       messagesRef.current = afterErr;
       setMessages(afterErr);
+
       setLastType("question");
     } finally {
       setLoading(false);
@@ -101,6 +122,14 @@ export default function AIChefChatWidget() {
 
   return (
     <div className="fixed bottom-5 right-5 z-[9999]">
+      {/* ✅ MODAL - חייב להיות מרונדר פה */}
+      <RecipeModal
+        open={!!recipeModal}
+        title={recipeModal?.title || ""}
+        body={recipeModal?.body || ""}
+        onClose={() => setRecipeModal(null)}
+      />
+
       {/* CHAT WINDOW */}
       <div
         className={[
@@ -124,12 +153,6 @@ export default function AIChefChatWidget() {
               <div className="text-sm font-semibold" dir="rtl">
                 השף הפרטי
               </div>
-
-              {/* Debug קטן – אפשר למחוק */}
-              <div className="text-[10px] text-white/50" dir="ltr">
-                lastType: {lastType} | loading: {String(loading)}
-              </div>
-
               <div className="text-xs text-white/60" dir="rtl">
                 שף פרטי לבישול ביתי
               </div>
@@ -176,7 +199,7 @@ export default function AIChefChatWidget() {
           )}
         </div>
 
-        {/* Footer – תמיד textarea + שלח */}
+        {/* Footer */}
         <div className="border-t border-white/10 px-3 py-3">
           <div className="flex gap-2">
             <textarea
